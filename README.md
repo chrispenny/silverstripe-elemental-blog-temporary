@@ -2,9 +2,9 @@
 
 ## Purpose
 
-The purpose of this module is to provide you with an Elemental Block/Element that can be used to replace the default
-Blog template behaviour (EG: Use a Block to display a paginated list of Blog Posts, with support for pagination,
-categorisation, and tags).
+The purpose of this module is to provide you with an Elemental Block that can be used to replace the default Blog
+template behaviour (EG: Use a Block to display a paginated list of Blog Posts, with support for pagination,
+categorisation, tags, and other widgets).
 
 As there are many ways that you could be using Elemental, this module does **not** make assumptions about how you want
 it to be applied. Examples are provided below.
@@ -15,17 +15,29 @@ it to be applied. Examples are provided below.
 composer require chrispenny/silverstripe-elemental-blog
 ```
 
+Depending on how you have applied `ElementalPageExtension`, you **may** need to add it to `Blog` and `BlogPost`:
+
+```yaml
+SilverStripe\Blog\Model\Blog:
+  extensions:
+    elemental: DNADesign\Elemental\Extensions\ElementalPageExtension
+
+SilverStripe\Blog\Model\BlogPost:
+  extensions:
+    elemental: DNADesign\Elemental\Extensions\ElementalPageExtension
+```
+
 The Elemental module suggests that we override the `Layout` template, and use `$ElementalArea` to render the elements to
 the page (in place of `$Content`). The following assumes that this is how you will be implementing your Blocks.
 
-The Blog module itself uses the standard `Page.ss` template, but also provides it's own `Layout` template
+The Blog module itself uses the standard `Page.ss` template, but also provides its own `Layout` template
 (`SilverStripe\Blog\Model\Layout\Blog.ss`). So, out of the box, even if `Elemental` is available to your `Blog` page, no
-Elements are going to be output in your template (as Silverstripe will first check for, and find, a `Layout\Blog`
+Elements are going to be output in your template (as Silverstripe will first check for, and will find, a `Layout\Blog`
 template).
 
-For us, using the Blog module, that means that we'll likely want to override the default Blog `Layout` template. The
-idea being that we now want to render all aspects of the Blog through Blocks, rather than just through the `Layout`
-template.
+For us (who are wanting to switch to using Blocks to display our Blog) this means that we'll likely want to override the
+default Blog `Layout` template. The idea being that we now want to render all aspects of the Blog through Blocks, rather
+than just through the `Layout` template.
 
 To do that, in the templates directory of your active theme (EG: `/themes/simple/templates/...`), add a new Layout
 template matching the namespace of the Blog module's `Layout` template (`SilverStripe\Blog\Model\Layout\Blog.ss`).
@@ -53,20 +65,22 @@ EG `Blog.ss`:
 </div>
 ```
 
+Your `Blog` page will now output Blocks, instead of its standard `Layout`.
+
 ## Usage
 
 TL;DR: Have a look at `BlogOverviewBlock`. It has a tonne of configurable values, and should give you pretty good
 control over how you want to use it.
 
-`PaginationBlock` and `WidgetsBlock` are both just extensions of the `OverviewBlock` which have different configurations
-set (and their own, simplified template).
+`PaginationBlock` and `WidgetsBlock` both just extent the `OverviewBlock`. The only difference is that they have
+different default configurations set (and their own, simplified template).
 
 ### Blog Overview Block
 
 This is (likely) the main Block that you will be using. It will output a bunch of what was originally being output by
 the Blog module's `Layout` template.
 
-Including:
+**Including:**
 
 - Title (including Category/Archive/etc titles) (if `$ShowTitle` is ticked in the CMS for the Block)
 - Blog Posts that were created under this particular Blog page (or simply **all** Blog Posts if this Block is not being
@@ -75,7 +89,7 @@ used on a Blog page)
 return a `PaginatedList`)
 - Widgets (if `$ShowWidgets` is ticked in the CMS for the Block and if the Page is able to return a `WidgetArea`)
 
-But **not** including:
+**But not including:**
 
 - `$Content` (it is assumed, since you're building pages with Blocks, that your `$Content` will be coming from another
 block)
@@ -86,10 +100,10 @@ template found with the namespace `ChrisPenny\ElementalBlog\Model\BlogOverviewBl
 **Please consider:** While the Overview Block does support you using it on other page types, it is primarily designed to
 be used on Blog page types. This is because it is `Blog` and `BlogController` that provide the relevant info to this
 Block. If you use this Block on other page types, then this Block's default behaviour is simply to return all Blog Posts
-currently in the DB.
+currently in the DB (though, you do have options to manipulate these through extension points).
 
 Please consider whether you want this Block to be available to other page types, and if you don't, you might want to
-add this Block as a `disallowed` Element on your base Block page. EG:
+add this Block as a `disallowed` Element on your other Block page. EG:
 
 ```yaml
 Page:
