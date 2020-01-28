@@ -3,6 +3,7 @@
 namespace ChrisPenny\ElementalBlog\Model;
 
 use DNADesign\Elemental\Models\BaseElement;
+use Exception;
 use SilverStripe\Blog\Model\Blog;
 use SilverStripe\Blog\Model\BlogController;
 use SilverStripe\Blog\Model\BlogPost;
@@ -116,6 +117,13 @@ class BlogOverviewBlock extends BaseElement
     private static $show_info_message_field = 1;
 
     /**
+     * Default value used for the message field in the CMS. You can update this via config
+     *
+     * @var string
+     */
+    private static $info_message_field_default = 'This block will automatically display Blog Posts and pagination';
+
+    /**
      * Cached value for BlogPosts from the Blog page
      *
      * @var DataList|BlogPost[]|null
@@ -195,7 +203,7 @@ class BlogOverviewBlock extends BaseElement
                 'BlockInfoMessage',
                 sprintf(
                     '<p style="text-align:center">%s</p>',
-                    'This block will automatically display Blog Posts and pagination'
+                    static::config()->get('info_message_field_default')
                 )
             );
 
@@ -301,6 +309,19 @@ class BlogOverviewBlock extends BaseElement
 
         // We can't get widgets for the Page if the Page type doesn't have the Widget extension
         if (!$page->hasExtension(WidgetPageExtension::class)) {
+            // You get one last chance to return a WidgetArea through some other means
+            if ($page->hasMethod('SideBarView')) {
+                $widgetArea = $page->SideBarView();
+
+                if (!$widgetArea instanceof WidgetArea) {
+                    throw new Exception('SideBarView expected to return class type WidgetArea');
+                }
+
+                $this->widgetArea = $widgetArea;
+
+                return $this->widgetArea;
+            }
+
             return null;
         }
 
@@ -309,14 +330,22 @@ class BlogOverviewBlock extends BaseElement
             && ($parent = $page->getParent())
             && $parent->hasMethod('SideBarView')
         ) {
-            $this->widgetArea = $parent->SideBarView();
+            $widgetArea = $parent->SideBarView();
+
+            $this->invokeWithExtensions('updateWidgetArea', $widgetArea);
+
+            $this->widgetArea = $widgetArea;
 
             return $this->widgetArea;
         }
 
         // Otherwise, let's attempt to fetch the SideBar from this current Page
         if ($page->SideBar()->exists()) {
-            $this->widgetArea = $page->SideBar();
+            $widgetArea = $page->SideBar();
+
+            $this->invokeWithExtensions('updateWidgetArea', $widgetArea);
+
+            $this->widgetArea = $widgetArea;
 
             return $this->widgetArea;
         }
@@ -339,7 +368,7 @@ class BlogOverviewBlock extends BaseElement
         $cacheKey = implode(
             '-',
             [
-                $this->ClassName,
+                static::class,
                 $this->ID,
                 $this->LastEdited,
                 $this->getBlogPosts()->count(),

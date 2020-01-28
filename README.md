@@ -55,6 +55,12 @@ EG `Blog.ss`:
 
 ## Usage
 
+TL;DR: Have a look at `BlogOverviewBlock`. It has a tonne of configurable values, and should give you pretty good
+control over how you want to use it.
+
+`PaginationBlock` and `WidgetsBlock` are both just extensions of the `OverviewBlock` which have different configurations
+set (and their own, simplified template).
+
 ### Blog Overview Block
 
 This is (likely) the main Block that you will be using. It will output a bunch of what was originally being output by
@@ -93,8 +99,34 @@ Page:
 
 ## Blog Pagination Block
 
-Coming soon
+You might decide that you would like Pagination to be displayed quite separately to the Blog Overview Block. This can
+be done using the `BlogPaginationBlock` (and probably disabling `ShowPagination` in `BlogOverviewBlock`).
+
+By default, the Pagination Block relies on having a `Blog` page as it's parent, but you can also hook into the provided
+extension points in order to update the `PaginatedList` by some other means.
+
+**Please consider:** Like the Overview Block, please consider removing this Block from any/all Page that you do not
+want it available on. EG:
+
+```yaml
+Page:
+  disallowed_elements:
+    - ChrisPenny\ElementalBlog\Model\BlogPaginationBlock
+```
 
 ## Blog Widgets Block
 
-Coming soon
+You might decide that you would like Blog Widgets to be displayed quite separately to the Blog Overview Block. This can
+be done using the `BlogWidgetsBlock` (and probably disabling `ShowWidgets` in `BlogOverviewBlock`).
+
+By default, the Widgets Block relies on having a `Blog` page as it's parent, but you can also hook into the provided
+extension points in order to update the `WidgetArea` by some other means.
+
+**Please consider:** Like the Overview Block, please consider removing this Block from any/all Page that you do not
+want it available on. EG:
+
+```yaml
+Page:
+  disallowed_elements:
+    - ChrisPenny\ElementalBlog\Model\BlogWidgetsBlock
+```
